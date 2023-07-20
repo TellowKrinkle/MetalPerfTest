@@ -211,6 +211,7 @@ func test(gpu: MTLDevice) {
 	let shaderSample1d = loadShaders(name: "sampleTexture1d")
 	let shaderSample2d = loadShaders(name: "sampleTexture2d")
 	let shaderSample4d = loadShaders(name: "sampleTexture4d")
+	let shaderGather = loadShaders(name: "gatherTexture")
 	let shaderTextureBufferHalf1d = loadShaders(name: "loadTextureBufferHalf1d")
 	let shaderTextureBufferHalf2d = loadShaders(name: "loadTextureBufferHalf2d")
 	let shaderTextureBufferHalf4d = loadShaders(name: "loadTextureBufferHalf4d")
@@ -220,6 +221,7 @@ func test(gpu: MTLDevice) {
 	let shaderSampleHalf1d = loadShaders(name: "sampleTextureHalf1d")
 	let shaderSampleHalf2d = loadShaders(name: "sampleTextureHalf2d")
 	let shaderSampleHalf4d = loadShaders(name: "sampleTextureHalf4d")
+	let shaderGatherHalf = loadShaders(name: "gatherTextureHalf")
 
 	do {
 		let initBuf = gpu.makeBuffer(length: 2048 * 16)!
@@ -322,6 +324,10 @@ func test(gpu: MTLDevice) {
 		testAll(shaders: shaderSample2d, name: "texture2d<RG32>.sample(bilinear)", texture: tex2dRG32F, sampler: samplerBilinear)
 		testAll(shaders: shaderSample4d, name: "texture2d<RGBA32>.sample(bilinear)", texture: tex2dRGBA32F, sampler: samplerBilinear)
 
+		testAll(shaders: shaderGather, name: "texture2d<R8>.gather", texture: tex2dR8, sampler: samplerBilinear)
+		testAll(shaders: shaderGather, name: "texture2d<R16>.gather", texture: tex2dR16F, sampler: samplerBilinear)
+		testAll(shaders: shaderGather, name: "texture2d<R32>.gather", texture: tex2dR32F, sampler: samplerBilinear)
+
 		testAll(shaders: shaderTextureBufferHalf1d, name: "texture_buffer<R8H>", texture: tbufR8)
 		testAll(shaders: shaderTextureBufferHalf2d, name: "texture_buffer<RG8H>", texture: tbufRG8)
 		testAll(shaders: shaderTextureBufferHalf4d, name: "texture_buffer<RGBA8H>", texture: tbufRGBA8)
@@ -361,6 +367,10 @@ func test(gpu: MTLDevice) {
 		testAll(shaders: shaderSampleHalf1d, name: "texture2d<R32H>.sample(bilinear)", texture: tex2dR32F, sampler: samplerBilinear)
 		testAll(shaders: shaderSampleHalf2d, name: "texture2d<RG32H>.sample(bilinear)", texture: tex2dRG32F, sampler: samplerBilinear)
 		testAll(shaders: shaderSampleHalf4d, name: "texture2d<RGBA32H>.sample(bilinear)", texture: tex2dRGBA32F, sampler: samplerBilinear)
+
+		testAll(shaders: shaderGatherHalf, name: "texture2d<R8H>.gather", texture: tex2dR8, sampler: samplerBilinear)
+		testAll(shaders: shaderGatherHalf, name: "texture2d<R16H>.gather", texture: tex2dR16F, sampler: samplerBilinear)
+		testAll(shaders: shaderGatherHalf, name: "texture2d<R32H>.gather", texture: tex2dR32F, sampler: samplerBilinear)
 
 		let res = bench.end()
 		if results.isEmpty {

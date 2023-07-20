@@ -250,6 +250,18 @@ If you want to run from Xcode, make a new command line project, drag the two sou
  13.13ms   0.25x texture2d<RGBA32>.sample(bilinear) linear
  13.13ms   0.25x texture2d<RGBA32>.sample(bilinear) random
  13.13ms   0.25x texture2d<RGBA32>.sample(bilinear) random+
+  3.71ms   0.89x texture2d<R8>.gather uniform
+  3.72ms   0.89x texture2d<R8>.gather linear
+  3.68ms   0.90x texture2d<R8>.gather random
+  3.71ms   0.89x texture2d<R8>.gather random+
+  3.71ms   0.89x texture2d<R16>.gather uniform
+  3.73ms   0.89x texture2d<R16>.gather linear
+  3.68ms   0.90x texture2d<R16>.gather random
+  3.72ms   0.89x texture2d<R16>.gather random+
+  6.57ms   0.50x texture2d<R32>.gather uniform
+  6.57ms   0.50x texture2d<R32>.gather linear
+  6.59ms   0.50x texture2d<R32>.gather random
+  6.59ms   0.50x texture2d<R32>.gather random+
   3.30ms   1.00x texture_buffer<R8H> uniform
   3.30ms   1.00x texture_buffer<R8H> linear
   3.30ms   1.00x texture_buffer<R8H> random
@@ -394,6 +406,18 @@ If you want to run from Xcode, make a new command line project, drag the two sou
  13.13ms   0.25x texture2d<RGBA32H>.sample(bilinear) linear
  13.13ms   0.25x texture2d<RGBA32H>.sample(bilinear) random
  13.13ms   0.25x texture2d<RGBA32H>.sample(bilinear) random+
+  3.30ms   1.00x texture2d<R8H>.gather uniform
+  3.30ms   1.00x texture2d<R8H>.gather linear
+  3.31ms   1.00x texture2d<R8H>.gather random
+  3.32ms   0.99x texture2d<R8H>.gather random+
+  3.31ms   1.00x texture2d<R16H>.gather uniform
+  3.31ms   1.00x texture2d<R16H>.gather linear
+  3.31ms   1.00x texture2d<R16H>.gather random
+  3.39ms   0.98x texture2d<R16H>.gather random+
+  6.57ms   0.50x texture2d<R32H>.gather uniform
+  6.57ms   0.50x texture2d<R32H>.gather linear
+  6.61ms   0.50x texture2d<R32H>.gather random
+  6.59ms   0.50x texture2d<R32H>.gather random+
 ```
 
 **Constant Buffers**: Apple GPUs are able to run a prolog shader before the main shader, which can store uniforms for the main shader to access.  Since this shader can run arbitrary shader code, it can precalculate the entire constant value in the uniform shaders, leaving just a single uniform load in the actual shader.  It appears the compiler is more aggressive at hoisting these operations when the source is a `constant` buffer, and our complicated loop is only hoisted in that case, resulting in the >100x speedups for the uniform constant loads.  Outside of the uniform case, constant buffers perform identically to device buffers.
@@ -637,6 +661,18 @@ If you want to run from Xcode, make a new command line project, drag the two sou
   2.99ms   0.25x texture2d<RGBA32>.sample(bilinear) linear
   3.00ms   0.25x texture2d<RGBA32>.sample(bilinear) random
   4.11ms   0.18x texture2d<RGBA32>.sample(bilinear) random+
+  1.52ms   0.50x texture2d<R8>.gather uniform
+  1.52ms   0.50x texture2d<R8>.gather linear
+  1.52ms   0.50x texture2d<R8>.gather random
+  1.52ms   0.50x texture2d<R8>.gather random+
+  1.53ms   0.49x texture2d<R16>.gather uniform
+  1.52ms   0.50x texture2d<R16>.gather linear
+  1.53ms   0.49x texture2d<R16>.gather random
+  1.54ms   0.49x texture2d<R16>.gather random+
+  1.54ms   0.49x texture2d<R32>.gather uniform
+  1.54ms   0.49x texture2d<R32>.gather linear
+  1.51ms   0.50x texture2d<R32>.gather random
+  1.63ms   0.46x texture2d<R32>.gather random+
   0.76ms   1.00x texture_buffer<R8H> uniform
   0.76ms   0.99x texture_buffer<R8H> linear
   0.76ms   0.99x texture_buffer<R8H> random
@@ -781,6 +817,18 @@ If you want to run from Xcode, make a new command line project, drag the two sou
   3.00ms   0.25x texture2d<RGBA32H>.sample(bilinear) linear
   2.99ms   0.25x texture2d<RGBA32H>.sample(bilinear) random
   4.11ms   0.18x texture2d<RGBA32H>.sample(bilinear) random+
+  1.51ms   0.50x texture2d<R8H>.gather uniform
+  1.52ms   0.50x texture2d<R8H>.gather linear
+  1.52ms   0.50x texture2d<R8H>.gather random
+  1.52ms   0.50x texture2d<R8H>.gather random+
+  1.52ms   0.50x texture2d<R16H>.gather uniform
+  1.52ms   0.50x texture2d<R16H>.gather linear
+  1.52ms   0.50x texture2d<R16H>.gather random
+  1.52ms   0.50x texture2d<R16H>.gather random+
+  1.51ms   0.50x texture2d<R32H>.gather uniform
+  1.52ms   0.50x texture2d<R32H>.gather linear
+  1.53ms   0.49x texture2d<R32H>.gather random
+  1.62ms   0.47x texture2d<R32H>.gather random+
 ```
 
 **AMD RDNA1** TODO.
@@ -1758,6 +1806,18 @@ For some reason, texture buffers are 9x slower than everything else.
  75.93ms   0.73x texture2d<RGBA32>.sample(bilinear) linear
  75.57ms   0.73x texture2d<RGBA32>.sample(bilinear) random
  75.59ms   0.73x texture2d<RGBA32>.sample(bilinear) random+
+ 21.12ms   2.61x texture2d<R8>.gather uniform
+ 22.63ms   2.44x texture2d<R8>.gather linear
+ 23.05ms   2.39x texture2d<R8>.gather random
+ 24.07ms   2.29x texture2d<R8>.gather random+
+ 21.12ms   2.61x texture2d<R16>.gather uniform
+ 22.62ms   2.44x texture2d<R16>.gather linear
+ 23.06ms   2.39x texture2d<R16>.gather random
+ 24.07ms   2.29x texture2d<R16>.gather random+
+ 21.12ms   2.61x texture2d<R32>.gather uniform
+ 22.59ms   2.44x texture2d<R32>.gather linear
+ 23.04ms   2.39x texture2d<R32>.gather random
+ 24.05ms   2.29x texture2d<R32>.gather random+
   9.43ms   5.87x texture_buffer<R8H> uniform
  46.83ms   1.18x texture_buffer<R8H> linear
  55.40ms   1.00x texture_buffer<R8H> random
@@ -1902,6 +1962,18 @@ For some reason, texture buffers are 9x slower than everything else.
  75.42ms   0.73x texture2d<RGBA32H>.sample(bilinear) linear
  75.38ms   0.73x texture2d<RGBA32H>.sample(bilinear) random
  75.45ms   0.73x texture2d<RGBA32H>.sample(bilinear) random+
+ 18.79ms   2.93x texture2d<R8H>.gather uniform
+ 18.74ms   2.94x texture2d<R8H>.gather linear
+ 18.75ms   2.94x texture2d<R8H>.gather random
+ 23.41ms   2.35x texture2d<R8H>.gather random+
+ 18.79ms   2.93x texture2d<R16H>.gather uniform
+ 18.76ms   2.94x texture2d<R16H>.gather linear
+ 18.76ms   2.94x texture2d<R16H>.gather random
+ 23.44ms   2.35x texture2d<R16H>.gather random+
+ 18.77ms   2.94x texture2d<R32H>.gather uniform
+ 18.79ms   2.93x texture2d<R32H>.gather linear
+ 18.76ms   2.94x texture2d<R32H>.gather random
+ 23.44ms   2.35x texture2d<R32H>.gather random+
 ```
 
 Matches DX11 very well, right down to the weird 3x better texture than texture buffer performance.

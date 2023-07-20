@@ -276,6 +276,42 @@ template <LoadType Load, uint Size, typename T> kernel void sampleTexture(
 	}
 }
 
+template <LoadType Load, typename T> kernel void gatherTexture(
+	uint2 gid [[thread_position_in_grid]],
+	uint2 lid [[thread_position_in_threadgroup]],
+	constant LoadConstants& constants [[buffer(0)]],
+	device T* output [[buffer(1)]],
+	texture2d<T, access::sample> texture [[texture(0)]],
+	sampler samp [[sampler(0)]])
+{
+	threadgroup T dummyLDS[TEXTURE_THREAD_GROUP_SIZE][TEXTURE_THREAD_GROUP_SIZE];
+
+	vec<T, 4> value = 0;
+	uint2 htid = getIndex<Load>(lid);
+
+	const float2 invTextureDims = 1.0f / float2(32.0f, 32.0f);
+	const float2 texCenter = invTextureDims * 0.5;
+
+	for (int i = 0; i < 16; ++i) {
+		for (int j = 0; j < 16; ++j) {
+			// Mask with runtime constant to prevent unwanted compiler optimizations
+			uint2 elemIdx = (htid + uint2(i, j)) | constants.elementsMask;
+
+			float2 uv = float2(elemIdx) * invTextureDims + texCenter;
+
+			value += texture.gather(samp, uv);
+		}
+	}
+	// Linear write to LDS (no bank conflicts). Significantly faster than memory loads.
+	dummyLDS[lid.y][lid.x] = value.x + value.y + value.z + value.w;
+
+	threadgroup_barrier(mem_flags::mem_threadgroup);
+
+	if (constants.writeIndex != 0xffffffff) {
+		output[gid.x + gid.y] = dummyLDS[(constants.writeIndex >> 8) & 0xff][constants.writeIndex & 0xff];
+	}
+}
+
 #define TEMPLATE_ALL_LOADS(macro, name, ...) \
 	macro(name "Uniform", LoadType::Invariant, ##__VA_ARGS__) \
 	macro(name "Linear", LoadType::Linear, ##__VA_ARGS__) \
@@ -302,6 +338,9 @@ template <LoadType Load, uint Size, typename T> kernel void sampleTexture(
 #define TEMPLATE_UNORM_BUFFER(name, type, fn, loadtype, qualifier, buffer_type) \
 	template [[host_name(name)]] kernel void fn<type, buffer_type>(uint2, uint, constant LoadConstants&, device loadtype*, qualifier buffer_type*);
 
+#define TEMPLATE_GATHER(name, type, fn, loadtype) \
+	template [[host_name(name)]] kernel void fn<type, loadtype>(uint2, uint2, constant LoadConstants&, device loadtype*, texture2d<loadtype, access::sample>, sampler);
+
 #define TEMPLATE_OTHER(name, type, size, fn, loadtype, lid, ...) \
 	template [[host_name(name)]] kernel void fn<type, size, loadtype>(uint2, lid, constant LoadConstants&, device loadtype*, ##__VA_ARGS__);
 
@@ -322,6 +361,8 @@ TEMPLATE_1234(TEMPLATE_BUFFER, "loadConstantPackedBuffer", loadConstantBuffer, f
 TEMPLATE_124(TEMPLATE_OTHER, "loadTextureBuffer", loadTextureBuffer, float, uint, texture_buffer<float, access::read>)
 TEMPLATE_124(TEMPLATE_OTHER, "loadTexture", loadTexture, float, uint2, texture2d<float, access::read>)
 TEMPLATE_124(TEMPLATE_OTHER, "sampleTexture", sampleTexture, float, uint2, texture2d<float, access::sample>, sampler)
+TEMPLATE_ALL_LOADS(TEMPLATE_GATHER, "gatherTexture", gatherTexture, float)
 TEMPLATE_124(TEMPLATE_OTHER, "loadTextureBufferHalf", loadTextureBuffer, half, uint, texture_buffer<half, access::read>)
 TEMPLATE_124(TEMPLATE_OTHER, "loadTextureHalf", loadTexture, half, uint2, texture2d<half, access::read>)
 TEMPLATE_124(TEMPLATE_OTHER, "sampleTextureHalf", sampleTexture, half, uint2, texture2d<half, access::sample>, sampler)
+TEMPLATE_ALL_LOADS(TEMPLATE_GATHER, "gatherTextureHalf", gatherTexture, half)
